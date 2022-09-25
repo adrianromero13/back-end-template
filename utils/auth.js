@@ -10,6 +10,13 @@ const { User } = require('../models');
 // bring in needed parameters from config
 const { SECRET } = require('../config');
 
+
+// validate username function 
+const validateUsername = async (username) => {
+  let user = await User.findOne({ username });
+  return user ? false : true;
+}
+
 /**
  * @description. To register the user (admin, super_admin, user, supervisor)
  */
@@ -52,7 +59,62 @@ const userRegister = async (userDets, res) => {
   }
 };
 
+/**
+ * @DESC To login the user 
+ */
+
+ // set login function
+ const userLogin = async (userCreds, res) => {
+   // pull components from userCreds to use directly
+   let { username, password, role } = userCreds;
+   // check if username is in the database
+   const user = await User.findOne({ username });
+   // if not, fail the login attempt
+   if (!user) {
+     return res.status(404).json({
+       message: 'Username is not found. Invalid login credentials',
+       success: false,
+     });
+   }
+   // find a way to return protected route based on user's role
+
+   // check password validity
+   let isMatch = await bcrypt.compare(password, user.password);
+   // if it does match then issue the token
+   if (isMatch) {
+     let token = jwt.sign(
+       // set key valued pairs to match in token and an expiration and the key for further security
+       {
+         _id: user._id,
+         role: user.role,
+         username: user.username,
+       }, SECRET, { expiresIn: '7 days'}
+     );
+     // set the result with the token
+     let result = {
+       username: user.username,
+       role: user.role,
+       token: `Bearer ${token}`,
+       expiresIn: 168,
+     };
+     // send the results for use by user's environment
+     return res.status(200).json({
+       ...result,
+       message: 'You successfully logged in',
+       success: true,
+     });
+
+   } else {
+     // if password does not match, fail and let user know
+     return res.status(403).json({
+       message: 'Wrong password',
+       success: false,
+     });
+   };
+ }
+
 // export functions using module.exports
 module.exports = {
   userRegister,
+  userLogin,
 };
