@@ -52,4 +52,7 @@ const userRegister = async (userDets, res) => {
   }
 };
 
-
+// export functions using module.exports
+module.exports = {
+  userRegister,
+};
