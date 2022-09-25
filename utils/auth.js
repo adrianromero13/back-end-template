@@ -25,7 +25,31 @@ const userRegister = async (userDets, res) => {
         success: false,
       });
     }
+
+    // get the hashed password
+    const password = await bcrypt.hash(userDets.password, 12);
+    const role = userDets.role;
+    // create the new user using db template
+    const newUser = new User({
+      // this inclusive command allows to specify any component and includes all others not mentioned
+      ...userDets,
+      password,
+      role,
+    });
+    await newUser.save();
+    // return response from trycatch
+    return res.status(201).json({
+      message: 'You are now successfully registered. Please login',
+      success: true,
+    });
   } catch (e) {
-    
+    // logger function to see in console when error occurs in creation of user
+    return res.status(500).json({
+      data: {...userDets},
+      message: 'Unable to create your account.',
+      success: false,
+    })
   }
-}
+};
+
+

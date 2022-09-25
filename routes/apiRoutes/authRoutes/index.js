@@ -2,3 +2,6 @@
 const router = require('express').Router();
 
 // import needed controller functions
+const {
+  userAuth,
+} = require('../../../utils/auth');
